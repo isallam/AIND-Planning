@@ -196,15 +196,61 @@ class AirCargoProblem(Problem):
 
     def h_ignore_preconditions(self, node: Node):
         '''
+        This code was suggested by the reviewer with the following note:
+           "This code is part of a solution that was provided by Udcaity so credit goes to them"
+
+        This heuristic estimates the minimum number of actions that must be
+        carried out from the current state in order to satisfy all of the goal
+        conditions by ignoring the preconditions required for an action to be
+        executed.
+
+        :param node:
+        :return:
+        '''
+        count = 0
+
+        for i, fluent in enumerate(self.state_map):
+            # count number of fluents not correct
+            if fluent in self.goal:
+                if node.state[i] == 'F':
+                    count += 1
+
+        return count
+
+    def h_ignore_preconditions_myImpl(self, node: Node):
+        '''
         This heuristic estimates the minimum number of actions that must be
         carried out from the current state in order to satisfy all of the goal
         conditions by ignoring the preconditions required for an action to be
         executed.
         '''
         # TODO implement (see Russell-Norvig Ed-3 10.2.3  or Russell-Norvig Ed-2 11.2)
-        count = 0
+        count = self.process_actions(node.state)
         return count
 
+    def process_actions(self, state):
+        '''
+        This function is called recursively to process all action for a state, each state
+        will be counted as one, and the total will indicate how many actions/states are
+        processed to reach the goal, ignoring the preconditions
+        :param state:
+        :return: count of states to reach a goal
+        '''
+        count = 1
+        actions = self.actions(state)
+        fluent_state = decode_state(state, self.state_map)
+        # assume all actions are effective regardless and add them to the state.
+        for action in actions:
+            for fluent in action.effect_add:
+                if fluent not in fluent_state.pos:
+                    fluent_state.pos.append(fluent)
+                if fluent in fluent_state.neg:
+                    fluent_state.neg.remove(fluent)
+        new_state = encode_state(fluent_state, self.state_map)
+        if not self.goal_test(new_state):
+            count += self.process_actions(new_state)
+
+        return count
 
 def air_cargo_p1() -> AirCargoProblem:
     cargos = ['C1', 'C2']
