@@ -122,6 +122,13 @@ class AirCargoProblem(Problem):
             state represented as T/F string of mapped fluents (state variables)
             e.g. 'FTTTFF'
         :return: list of Action objects
+
+        An alternative way, a more pythonic way of writing the below piece of code would be:
+
+        kb = PropKB()
+        kb.tell(decode_state(state, self.state_map).pos_sentence())
+        possible_actions = [ a for a in self.actions_list if a.check_precond(kb, a.args) ]
+        return possible_actions
         """
         possible_actions = []
         kb = PropKB()
@@ -206,6 +213,11 @@ class AirCargoProblem(Problem):
 
         :param node:
         :return:
+
+        An alternative way, a more pythonic way of writing the below piece of code would be:
+
+        queries = [ q for q in self.goal if q not in decode_state(node.state, self.state_map).pos]
+        return len(queries)
         '''
         count = 0
 
